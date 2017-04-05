@@ -10,10 +10,11 @@ WINDOW_HEIGHT = 480
 BACKGROUND_COLOR = (80,80,80)
 LINE_COLOR = (240,240,240)
 BAR_COLOR = (240,240,240)
+BALL_COLOR = (240,240,240)
 BAR_LENGTH = 40
 BAR_SPEED = 10
+BALL_SIZE = 10
 FPS = 30
-
 
 
 pygame.init() # initialize the pygame window
@@ -25,6 +26,53 @@ background = background.convert() # convert the Surface to pixel format, the bac
 background.fill(BACKGROUND_COLOR) # Fill the background with the background color
 pygame.draw.rect(background,LINE_COLOR,pygame.Rect((0,0),(WINDOW_WIDTH-1,WINDOW_HEIGHT-1)),2) # Draw the line around the edge of the player field, it's a Rect with top left corner at (1,1), width and height are 2 less than the screen, and the thickness of the border is 2
 pygame.draw.line(background,LINE_COLOR,(WINDOW_WIDTH/2,0),(WINDOW_WIDTH/2,WINDOW_HEIGHT),2) # Draw the middle line, starting at the top middle of the screen to the bottom middle, thickness 2
+
+class Ball: # A class for the Ball
+	def __init__(self,x = WINDOW_WIDTH/2,y = WINDOW_HEIGHT/2,size = BALL_SIZE, xspeed=0,yspeed=0):
+		self.x = x
+		self.y = y
+		self.size = size
+		self.xspeed = xspeed
+		self.yspeed = yspeed
+
+		self.surface = pygame.Surface((BALL_SIZE,BALL_SIZE));
+		self.surface = self.surface.convert()
+		self.surface.fill(BALL_COLOR)
+
+	def reset(self,direction):
+		self.x = WINDOW_WIDTH/2
+		self.y = WINDOW_HEIGHT/2
+		self.yspeed = 9
+
+		if direction == 'left':
+			self.xspeed = -7
+		elif direction == 'right':
+			self.xspeed = 7
+		else:
+			self.xspeed = 0
+
+	def move(self,new_xspeed = None, new_yspeed = None):
+		if new_xspeed != None:
+			self.xspeed = new_xspeed
+		if new_yspeed != None:
+			self.yspeed = new_yspeed
+
+		if self.xspeed != 0 or self.yspeed != 0:
+			self.x += self.xspeed
+			self.y += self.yspeed
+
+			if self.x - BALL_SIZE/2 < 0:
+				self.reset('right')
+			elif self.x + BALL_SIZE/2 > WINDOW_WIDTH:
+				self.reset('left')
+
+			if self.y - BALL_SIZE/2 < 0:
+				self.y *= -1
+				self.yspeed *= -1
+			elif self.y + BALL_SIZE/2 > WINDOW_HEIGHT:
+				self.y = WINDOW_HEIGHT - (self.y - WINDOW_HEIGHT)
+				self.yspeed *= -1
+
 
 class Bar: # A class for the bars the players will use to defend their goals
 	def __init__(self,x,y,length=BAR_LENGTH): # This function is automatically called when we create a new bar, it takes in values for the position and length and initializes these values in our new bar
@@ -55,6 +103,7 @@ class Bar: # A class for the bars the players will use to defend their goals
 
 bar1 = Bar(10,WINDOW_HEIGHT/2) # Create the bar on the left side of the screen
 bar2 = Bar(WINDOW_WIDTH-10,WINDOW_HEIGHT/2) # Create the bar on the right side of the screen
+ball = Ball(WINDOW_WIDTH/2,WINDOW_HEIGHT/2,BALL_SIZE,7,9)
 
 clock = pygame.time.Clock() # create the clock we'll use to manage the framerate of the game
 
@@ -76,7 +125,7 @@ while True:
 			if event.key in (pygame.K_w, pygame.K_s):
 				bar1.move(0) # Once the left player releases their movement keys, set bar1's speed to 0
 
-	keys = pygame.key.get_pressed() # Check all of the keys that are currently being pressed
+	keys = pygame.key.get_pressed() # Check all of the keys that are currently being pressed down
 	if keys[pygame.K_UP]: # Move bar2, if the right player is holding down one of their movement keys
 		bar2.move(-1*BAR_SPEED)
 	elif keys[pygame.K_DOWN]:
@@ -87,10 +136,18 @@ while True:
 	elif keys[pygame.K_s]:
 		bar1.move(BAR_SPEED)
 
+
+	if (ball.x - BALL_SIZE/2)  - bar1.x >= 0 and (ball.x - BALL_SIZE/2)  - bar1.x <= 7 and abs(ball.y - bar1.y) < (BAR_LENGTH+BALL_SIZE)/2:
+		ball.move(new_xspeed = -1*ball.xspeed)
+	elif bar2.x - (ball.x + BALL_SIZE/2) >= 0 and bar2.x - (ball.x + BALL_SIZE/2)  <= 7 and abs(ball.y - bar2.y) < (BAR_LENGTH+BALL_SIZE)/2:
+		ball.move(new_xspeed = -1*ball.xspeed)
+
+	ball.move()
+
 	window.blit(background,(0,0)) # Blit the background to the screen with top left corner aligned at (0,0)
 	window.blit(bar1.surface,(bar1.x - 5,bar1.y-BAR_LENGTH/2)) # Blit bar one, using the midpoint to determine where its top left corner is
 	window.blit(bar2.surface,(bar2.x - 5,bar2.y-BAR_LENGTH/2)) # Blit bar two in the same way
-
+	window.blit(ball.surface,(ball.x - BALL_SIZE/2, ball.y - BALL_SIZE/2))
 
 	clock.tick(FPS) # Use this command to make sure the game loop runs no more than FPS times per second
 	pygame.display.update() # Update the pygame window
