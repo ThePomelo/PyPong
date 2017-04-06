@@ -28,45 +28,45 @@ pygame.draw.rect(background,LINE_COLOR,pygame.Rect((0,0),(WINDOW_WIDTH-1,WINDOW_
 pygame.draw.line(background,LINE_COLOR,(WINDOW_WIDTH/2,0),(WINDOW_WIDTH/2,WINDOW_HEIGHT),2) # Draw the middle line, starting at the top middle of the screen to the bottom middle, thickness 2
 
 class Ball: # A class for the Ball
-	def __init__(self,x = WINDOW_WIDTH/2,y = WINDOW_HEIGHT/2,size = BALL_SIZE, xspeed=0,yspeed=0):
-		self.x = x
-		self.y = y
-		self.size = size
-		self.xspeed = xspeed
-		self.yspeed = yspeed
+	def __init__(self,x = WINDOW_WIDTH/2,y = WINDOW_HEIGHT/2,size = BALL_SIZE, xspeed=0,yspeed=0): # this function is automatically called whenever we create a Ball
+		self.x = x	# x coordinate of the midpoint of the ball
+		self.y = y # y coordinate of the midpoint of the ball
+		self.size = size # side length of the ball
+		self.xspeed = xspeed # speed of the ball in the x direction
+		self.yspeed = yspeed # speed of the ball in the y direction
 
-		self.surface = pygame.Surface((BALL_SIZE,BALL_SIZE));
-		self.surface = self.surface.convert()
-		self.surface.fill(BALL_COLOR)
+		self.surface = pygame.Surface((BALL_SIZE,BALL_SIZE)); # initialize square surface of size BALL_SIZE
+		self.surface = self.surface.convert() # convert to pixel array
+		self.surface.fill(BALL_COLOR) # fill the surface with the color BALL_COLOR
 
-	def reset(self,direction):
-		self.x = WINDOW_WIDTH/2
+	def reset(self,direction): # Reset the ball if a player scores
+		self.x = WINDOW_WIDTH/2 # set the ball in the middle of the field
 		self.y = WINDOW_HEIGHT/2
-		self.yspeed = 9
+		self.yspeed = 9 # give it some y-speed
 
-		if direction == 'left':
+		if direction == 'left': # if the left player scored, send the ball to the left
 			self.xspeed = -7
-		elif direction == 'right':
+		elif direction == 'right': # if the right player scored, send the ball to the right
 			self.xspeed = 7
 		else:
-			self.xspeed = 0
+			self.xspeed = 0 # If no direction is given, set the x speed to 0
 
-	def move(self,new_xspeed = None, new_yspeed = None):
-		if new_xspeed != None:
+	def move(self,new_xspeed = None, new_yspeed = None): # Move the ball the appropriate amount for one time tick
+		if new_xspeed != None: # If new values of the speeds are given, set them
 			self.xspeed = new_xspeed
 		if new_yspeed != None:
 			self.yspeed = new_yspeed
 
-		if self.xspeed != 0 or self.yspeed != 0:
-			self.x += self.xspeed
+		if self.xspeed != 0 or self.yspeed != 0: # If the speeds are both 0, we don't need to move
+			self.x += self.xspeed # Otherwise, advance the ball
 			self.y += self.yspeed
 
-			if self.x - BALL_SIZE/2 < 0:
+			if self.x - BALL_SIZE/2 < 0: # If the ball hits the left wall, reset the ball and send it right
 				self.reset('right')
-			elif self.x + BALL_SIZE/2 > WINDOW_WIDTH:
+			elif self.x + BALL_SIZE/2 > WINDOW_WIDTH: # If the ball hits the right wall, reset the ball and send it left
 				self.reset('left')
 
-			if self.y - BALL_SIZE/2 < 0:
+			if self.y - BALL_SIZE/2 < 0: # If the ball hits the top or bottom, reverse its y-speed
 				self.y *= -1
 				self.yspeed *= -1
 			elif self.y + BALL_SIZE/2 > WINDOW_HEIGHT:
@@ -136,13 +136,13 @@ while True:
 	elif keys[pygame.K_s]:
 		bar1.move(BAR_SPEED)
 
-
+	# Check if the ball hits either of the bars, if so reverse it's x direction
 	if (ball.x - BALL_SIZE/2)  - bar1.x >= 0 and (ball.x - BALL_SIZE/2)  - bar1.x <= 7 and abs(ball.y - bar1.y) < (BAR_LENGTH+BALL_SIZE)/2:
 		ball.move(new_xspeed = -1*ball.xspeed)
 	elif bar2.x - (ball.x + BALL_SIZE/2) >= 0 and bar2.x - (ball.x + BALL_SIZE/2)  <= 7 and abs(ball.y - bar2.y) < (BAR_LENGTH+BALL_SIZE)/2:
 		ball.move(new_xspeed = -1*ball.xspeed)
 
-	ball.move()
+	ball.move() # Move the ball
 
 	window.blit(background,(0,0)) # Blit the background to the screen with top left corner aligned at (0,0)
 	window.blit(bar1.surface,(bar1.x - 5,bar1.y-BAR_LENGTH/2)) # Blit bar one, using the midpoint to determine where its top left corner is
